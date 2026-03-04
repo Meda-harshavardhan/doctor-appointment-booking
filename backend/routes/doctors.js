@@ -493,7 +493,7 @@ router.get('/:id/availability', validateObjectId('id'), async (req, res) => {
     }
 
     const appointmentDate = new Date(date);
-    const dayName = appointmentDate.toLocaleDateString('en-US', { weekday: 'lowercase' });
+    const dayName = appointmentDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
 
     // Get available time slots
     const availableSlots = doctor.getAvailableSlots(dayName, date);

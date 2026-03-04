@@ -211,7 +211,7 @@ appointmentSchema.methods.canBeRescheduled = function() {
   const appointmentDateTime = new Date(`${this.appointmentDate.toDateString()} ${this.appointmentTime}`);
   const hoursUntilAppointment = (appointmentDateTime - now) / (1000 * 60 * 60);
   
-  return (this.status === 'confirmed' || this.status === 'pending') && hoursUntilAppointment > 2;
+  return (this.status === 'confirmed' || this.status === 'pending' || this.status === 'rescheduled') && hoursUntilAppointment > 2;
 };
 
 // Method to calculate refund amount

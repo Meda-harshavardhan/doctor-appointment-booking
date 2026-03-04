@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Rajesh Sharma",
+    "email": "dr.rajesh.sharma@example.com",
+    "userId": "691b251af480be834c8a6e85",
+    "doctorId": "691b251bf480be834c8a6e8a",
+    "specialization": "Cardiologist",
+    "isActive": true,
+    "isVerified": true,
+    "appointmentCount": 3
+  },
+  {
+    "name": "Rajesh Sharma",
+    "email": "dr.rajesh.sharma@pulse.com",
+    "userId": "69a4224cd97a98f4dfae2f2d",
+    "doctorId": "69a4224dd97a98f4dfae2f33",
+    "specialization": "Cardiologist",
+    "isActive": true,
+    "isVerified": true,
+    "appointmentCount": 0
+  }
+]

@@ -345,7 +345,7 @@ router.put('/:id/reschedule', verifyToken, validateObjectId('id'), async (req, r
     // Check if new slot is available
     const doctor = await Doctor.findById(appointment.doctorId);
     const newAppointmentDate = new Date(newDate);
-    const dayName = newAppointmentDate.toLocaleDateString('en-US', { weekday: 'lowercase' });
+    const dayName = newAppointmentDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
 
     if (!doctor.isAvailableAt(dayName, newTime)) {
       return res.status(400).json({ message: 'Doctor is not available at the requested time' });
