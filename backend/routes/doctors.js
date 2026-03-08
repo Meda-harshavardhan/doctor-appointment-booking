@@ -27,8 +27,19 @@ router.get('/', validatePagination, validateSearch, async (req, res) => {
     // Build search query
     let searchQuery = {};
     if (search) {
+      // Find users matching names (firstName or lastName)
+      const matchedUsers = await User.find({
+        $or: [
+          { firstName: { $regex: search, $options: 'i' } },
+          { lastName: { $regex: search, $options: 'i' } }
+        ]
+      }).select('_id');
+      
+      const userIds = matchedUsers.map(u => u._id);
+
       searchQuery = {
         $or: [
+          { userId: { $in: userIds } },
           { specialization: { $regex: search, $options: 'i' } },
           { bio: { $regex: search, $options: 'i' } },
           { services: { $in: [new RegExp(search, 'i')] } }

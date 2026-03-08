@@ -229,8 +229,18 @@ const validatePagination = [
 const validateSearch = [
   query('search')
     .optional()
-    .isLength({ min: 2, max: 100 })
-    .withMessage('Search term must be between 2 and 100 characters'),
+    .isLength({ min: 1, max: 100 })
+    .withMessage('Search term must be between 1 and 100 characters'),
+
+  query('sortBy')
+    .optional()
+    .isIn(['rating', 'experience', 'fee'])
+    .withMessage('Invalid sort field'),
+
+  query('sortOrder')
+    .optional()
+    .isIn(['asc', 'desc'])
+    .withMessage('Invalid sort order'),
   
   query('specialization')
     .optional()

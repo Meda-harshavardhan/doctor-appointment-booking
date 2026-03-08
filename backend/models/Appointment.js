@@ -229,8 +229,11 @@ appointmentSchema.methods.calculateRefund = function() {
   }
 };
 
-// Pre-save middleware to validate appointment time
+// Pre-save middleware to validate appointment time (only on CREATE, not on status updates)
 appointmentSchema.pre('save', function(next) {
+  // Only validate future date when creating a brand-new appointment
+  if (!this.isNew) return next();
+
   // Check if appointment is in the future
   const appointmentDateTime = new Date(`${this.appointmentDate.toDateString()} ${this.appointmentTime}`);
   if (appointmentDateTime <= new Date()) {

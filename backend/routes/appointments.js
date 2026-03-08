@@ -389,24 +389,36 @@ router.put('/:id/reschedule', verifyToken, validateObjectId('id'), async (req, r
 
 // @route   PUT /api/appointments/:id/complete
 // @desc    Mark appointment as completed
-// @access  Private (Doctor)
-router.put('/:id/complete', verifyToken, requireDoctor, validateObjectId('id'), async (req, res) => {
+// @access  Private (Doctor - verified or not, as long as they own the appointment)
+router.put('/:id/complete', verifyToken, validateObjectId('id'), async (req, res) => {
   try {
     const { diagnosis, prescription, followUpRequired, followUpDate, followUpNotes, doctorNotes } = req.body;
 
-    const appointment = await Appointment.findById(req.params.id);
+    if (req.user.role !== 'doctor') {
+      return res.status(403).json({ message: 'Access denied. Doctor privileges required.' });
+    }
 
+    // Find doctor profile (allow even unverified doctors to manage their own appointments)
+    const doctorProfile = await Doctor.findOne({ userId: req.user._id });
+    if (!doctorProfile) {
+      return res.status(403).json({ message: 'Doctor profile not found. Please complete your profile setup.' });
+    }
+
+    const appointment = await Appointment.findById(req.params.id);
     if (!appointment) {
-      return res.status(404).json({ message: 'Appointment not found' });
+      return res.status(404).json({ message: 'Appointment not found.' });
     }
 
     // Check if doctor owns this appointment
-    if (appointment.doctorId.toString() !== req.doctor._id.toString()) {
-      return res.status(403).json({ message: 'Access denied' });
+    if (appointment.doctorId.toString() !== doctorProfile._id.toString()) {
+      return res.status(403).json({ message: 'Access denied. This appointment does not belong to you.' });
     }
 
-    if (appointment.status !== 'confirmed') {
-      return res.status(400).json({ message: 'Only confirmed appointments can be completed' });
+    // Allow completing pending or confirmed appointments
+    if (!['pending', 'confirmed'].includes(appointment.status)) {
+      return res.status(400).json({
+        message: `Cannot complete appointment with status "${appointment.status}". Only pending or confirmed appointments can be completed.`
+      });
     }
 
     // Update appointment
@@ -419,83 +431,94 @@ router.put('/:id/complete', verifyToken, requireDoctor, validateObjectId('id'), 
     if (doctorNotes) appointment.doctorNotes = doctorNotes;
 
     await appointment.save();
-
     await appointment.populate([doctorPopulateConfig, patientPopulateConfig]);
 
-    res.json({
-      message: 'Appointment completed successfully',
-      appointment
-    });
+    // Notify patient via socket
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`patient-${appointment.patientId._id || appointment.patientId}`).emit('appointment-status-updated', {
+        appointment,
+        message: 'Your appointment has been completed'
+      });
+    }
+
+    res.json({ message: 'Appointment completed successfully', appointment });
   } catch (error) {
-    console.error('Complete appointment error:', error);
-    res.status(500).json({ message: 'Server error while completing appointment' });
+    console.error('Complete appointment error — details:', error.message, error.stack);
+    res.status(500).json({ message: `Server error: ${error.message}` });
   }
 });
+
 
 // @route   PUT /api/appointments/:id/status
 // @desc    Update appointment status
 // @access  Private (Doctor)
-router.put('/:id/status', verifyToken, requireDoctor, validateObjectId('id'), async (req, res) => {
+router.put('/:id/status', verifyToken, validateObjectId('id'), async (req, res) => {
   try {
     const { status, notes } = req.body;
 
+    if (req.user.role !== 'doctor') {
+      return res.status(403).json({ message: 'Access denied. Doctor privileges required.' });
+    }
+
     if (!status || !['confirmed', 'completed', 'cancelled', 'no-show'].includes(status)) {
-      return res.status(400).json({ message: 'Invalid status. Must be one of: confirmed, completed, cancelled, no-show' });
+      return res.status(400).json({ message: 'Invalid status. Must be: confirmed, completed, cancelled, or no-show' });
+    }
+
+    // Find doctor profile — no isVerified check so doctor can always manage their appointments
+    const doctorProfile = await Doctor.findOne({ userId: req.user._id });
+    if (!doctorProfile) {
+      return res.status(403).json({ message: 'Doctor profile not found.' });
     }
 
     const appointment = await Appointment.findById(req.params.id);
-
     if (!appointment) {
       return res.status(404).json({ message: 'Appointment not found' });
     }
 
     // Check if doctor owns this appointment
-    if (appointment.doctorId.toString() !== req.doctor._id.toString()) {
-      return res.status(403).json({ message: 'Access denied' });
+    if (appointment.doctorId.toString() !== doctorProfile._id.toString()) {
+      return res.status(403).json({ message: 'Access denied. This appointment does not belong to you.' });
     }
 
     // Update appointment
     appointment.status = status;
-    if (notes) {
-      appointment.doctorNotes = notes;
-    }
+    if (notes) appointment.doctorNotes = notes;
 
     // If cancelling, add cancellation details
     if (status === 'cancelled') {
       appointment.cancellation = {
         cancelledBy: 'doctor',
         cancelledAt: new Date(),
-        reason: notes || 'Cancelled by doctor'
+        reason: notes || 'Cancelled by doctor',
+        refundAmount: 0,
+        refundStatus: 'processed'
       };
     }
 
     await appointment.save();
-
     await appointment.populate([doctorPopulateConfig, patientPopulateConfig]);
 
-    // Emit real-time event to the patient
+    // Emit real-time event
     const io = req.app.get('io');
     if (io) {
       io.to(`patient-${appointment.patientId._id || appointment.patientId}`).emit('appointment-status-updated', {
         appointment,
         message: `Your appointment has been ${status}`
       });
-      // Also notify the doctor's own other tabs/devices
       io.to(`doctor-${appointment.doctorId._id || appointment.doctorId}`).emit('appointment-status-updated', {
         appointment,
         message: `Appointment ${status}`
       });
     }
 
-    res.json({
-      message: `Appointment ${status} successfully`,
-      appointment
-    });
+    res.json({ message: `Appointment ${status} successfully`, appointment });
   } catch (error) {
-    console.error('Update appointment status error:', error);
-    res.status(500).json({ message: 'Server error while updating appointment status' });
+    console.error('Update appointment status error — details:', error.message, error.stack);
+    res.status(500).json({ message: `Server error: ${error.message}` });
   }
 });
+
 
 // @route   GET /api/appointments/upcoming/me
 // @desc    Get upcoming appointments for current user

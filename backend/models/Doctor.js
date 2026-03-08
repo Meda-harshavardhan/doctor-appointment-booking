@@ -142,6 +142,15 @@ const doctorSchema = new mongoose.Schema({
     type: String,
     maxlength: [1000, 'Bio cannot exceed 1000 characters']
   },
+  clinicAddress: {
+    name: { type: String, default: '' },      // e.g. "Apollo Clinic"
+    street: { type: String, default: '' },
+    area: { type: String, default: '' },
+    city: { type: String, default: '' },
+    state: { type: String, default: '' },
+    pincode: { type: String, default: '' },
+    mapLink: { type: String, default: '' }
+  },
   services: [String],
   awards: [{
     name: String,

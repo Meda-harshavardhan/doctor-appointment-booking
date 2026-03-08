@@ -92,6 +92,7 @@ interface Doctor {
     count: number;
   };
   isVerified: boolean;
+  isActive: boolean;
   profileCompleted: boolean;
   availability: any;
   createdAt: string;
@@ -252,13 +253,13 @@ interface AppointmentsContextType extends AppointmentsState {
   rescheduleAppointment: (appointmentId: string, newDate: string, newTime: string) => Promise<void>;
   confirmAppointment: (appointmentId: string) => Promise<void>;
   completeAppointment: (appointmentId: string, completionData: any) => Promise<void>;
-  
+
   // Doctor actions
   fetchDoctors: (params?: any) => Promise<void>;
   fetchSpecializations: () => Promise<void>;
   fetchDoctor: (doctorId: string) => Promise<Doctor>;
   fetchDoctorAvailability: (doctorId: string, date: string) => Promise<void>;
-  
+
   // Utility actions
   setSelectedDoctor: (doctor: Doctor | null) => void;
   setSelectedDate: (date: string | null) => void;
@@ -280,9 +281,9 @@ export const AppointmentsProvider: React.FC<AppointmentsProviderProps> = ({ chil
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
       dispatch({ type: 'SET_ERROR', payload: null });
-      
+
       const response = await appointmentsAPI.getAppointments(params);
-      
+
       dispatch({
         type: 'SET_APPOINTMENTS',
         payload: {
@@ -301,9 +302,9 @@ export const AppointmentsProvider: React.FC<AppointmentsProviderProps> = ({ chil
   const fetchUpcomingAppointments = async () => {
     try {
       dispatch({ type: 'SET_ERROR', payload: null });
-      
+
       const response = await appointmentsAPI.getUpcomingAppointments();
-      
+
       dispatch({ type: 'SET_UPCOMING_APPOINTMENTS', payload: response.appointments });
     } catch (error: any) {
       dispatch({ type: 'SET_ERROR', payload: error.message });
@@ -314,9 +315,9 @@ export const AppointmentsProvider: React.FC<AppointmentsProviderProps> = ({ chil
   const fetchTodaysAppointments = async () => {
     try {
       dispatch({ type: 'SET_ERROR', payload: null });
-      
+
       const response = await appointmentsAPI.getTodaysAppointments();
-      
+
       dispatch({ type: 'SET_TODAYS_APPOINTMENTS', payload: response.appointments });
     } catch (error: any) {
       dispatch({ type: 'SET_ERROR', payload: error.message });
@@ -327,11 +328,11 @@ export const AppointmentsProvider: React.FC<AppointmentsProviderProps> = ({ chil
   const bookAppointment = async (appointmentData: any): Promise<Appointment> => {
     try {
       dispatch({ type: 'SET_ERROR', payload: null });
-      
+
       const response = await appointmentsAPI.bookAppointment(appointmentData);
-      
+
       dispatch({ type: 'ADD_APPOINTMENT', payload: response.appointment });
-      
+
       return response.appointment;
     } catch (error: any) {
       dispatch({ type: 'SET_ERROR', payload: error.message });
@@ -343,9 +344,9 @@ export const AppointmentsProvider: React.FC<AppointmentsProviderProps> = ({ chil
   const cancelAppointment = async (appointmentId: string, reason?: string) => {
     try {
       dispatch({ type: 'SET_ERROR', payload: null });
-      
+
       const response = await appointmentsAPI.cancelAppointment(appointmentId, reason);
-      
+
       dispatch({ type: 'UPDATE_APPOINTMENT', payload: response.appointment });
     } catch (error: any) {
       dispatch({ type: 'SET_ERROR', payload: error.message });
@@ -357,9 +358,9 @@ export const AppointmentsProvider: React.FC<AppointmentsProviderProps> = ({ chil
   const rescheduleAppointment = async (appointmentId: string, newDate: string, newTime: string) => {
     try {
       dispatch({ type: 'SET_ERROR', payload: null });
-      
+
       const response = await appointmentsAPI.rescheduleAppointment(appointmentId, newDate, newTime);
-      
+
       dispatch({ type: 'UPDATE_APPOINTMENT', payload: response.appointment });
     } catch (error: any) {
       dispatch({ type: 'SET_ERROR', payload: error.message });
@@ -371,9 +372,9 @@ export const AppointmentsProvider: React.FC<AppointmentsProviderProps> = ({ chil
   const confirmAppointment = async (appointmentId: string) => {
     try {
       dispatch({ type: 'SET_ERROR', payload: null });
-      
+
       const response = await appointmentsAPI.confirmAppointment(appointmentId);
-      
+
       dispatch({ type: 'UPDATE_APPOINTMENT', payload: response.appointment });
     } catch (error: any) {
       dispatch({ type: 'SET_ERROR', payload: error.message });
@@ -385,9 +386,9 @@ export const AppointmentsProvider: React.FC<AppointmentsProviderProps> = ({ chil
   const completeAppointment = async (appointmentId: string, completionData: any) => {
     try {
       dispatch({ type: 'SET_ERROR', payload: null });
-      
+
       const response = await appointmentsAPI.completeAppointment(appointmentId, completionData);
-      
+
       dispatch({ type: 'UPDATE_APPOINTMENT', payload: response.appointment });
     } catch (error: any) {
       dispatch({ type: 'SET_ERROR', payload: error.message });
@@ -400,9 +401,9 @@ export const AppointmentsProvider: React.FC<AppointmentsProviderProps> = ({ chil
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
       dispatch({ type: 'SET_ERROR', payload: null });
-      
+
       const response = await doctorsAPI.getDoctors(params);
-      
+
       dispatch({
         type: 'SET_DOCTORS',
         payload: {
@@ -421,9 +422,9 @@ export const AppointmentsProvider: React.FC<AppointmentsProviderProps> = ({ chil
   const fetchSpecializations = async () => {
     try {
       dispatch({ type: 'SET_ERROR', payload: null });
-      
+
       const response = await doctorsAPI.getSpecializations();
-      
+
       dispatch({ type: 'SET_SPECIALIZATIONS', payload: response.specializations });
     } catch (error: any) {
       dispatch({ type: 'SET_ERROR', payload: error.message });
@@ -434,9 +435,9 @@ export const AppointmentsProvider: React.FC<AppointmentsProviderProps> = ({ chil
   const fetchDoctor = async (doctorId: string): Promise<Doctor> => {
     try {
       dispatch({ type: 'SET_ERROR', payload: null });
-      
+
       const response = await doctorsAPI.getDoctor(doctorId);
-      
+
       return response.doctor;
     } catch (error: any) {
       dispatch({ type: 'SET_ERROR', payload: error.message });
@@ -448,9 +449,9 @@ export const AppointmentsProvider: React.FC<AppointmentsProviderProps> = ({ chil
   const fetchDoctorAvailability = async (doctorId: string, date: string) => {
     try {
       dispatch({ type: 'SET_ERROR', payload: null });
-      
+
       const response = await doctorsAPI.getAvailability(doctorId, date);
-      
+
       dispatch({ type: 'SET_AVAILABLE_SLOTS', payload: response.availability.availableSlots });
     } catch (error: any) {
       dispatch({ type: 'SET_ERROR', payload: error.message });

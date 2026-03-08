@@ -535,6 +535,32 @@ export const adminAPI = {
   },
 };
 
+// Lab Tests API
+export const labTestsAPI = {
+  getTests: async (params: { search?: string; category?: string; page?: number; limit?: number } = {}) => {
+    const q = new URLSearchParams();
+    Object.entries(params).forEach(([k, v]) => { if (v !== undefined) q.append(k, String(v)); });
+    return apiRequest(`/lab-tests?${q.toString()}`);
+  },
+  getCategories: async () => apiRequest('/lab-tests/categories'),
+  getTest: async (id: string) => apiRequest(`/lab-tests/${id}`),
+  bookTest: async (id: string, data: any) => apiRequest(`/lab-tests/${id}/book`, { method: 'POST', body: JSON.stringify(data) }),
+  verifyPayment: async (bookingId: string, data: any) => apiRequest(`/lab-tests/bookings/${bookingId}/verify`, { method: 'POST', body: JSON.stringify(data) }),
+  getMyBookings: async () => apiRequest('/lab-tests/my/bookings'),
+  // Admin
+  createTest: async (data: any) => apiRequest('/lab-tests/admin/tests', { method: 'POST', body: JSON.stringify(data) }),
+  updateTest: async (id: string, data: any) => apiRequest(`/lab-tests/admin/tests/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteTest: async (id: string) => apiRequest(`/lab-tests/admin/tests/${id}`, { method: 'DELETE' }),
+  getAdminBookings: async (params: { page?: number; limit?: number; status?: string } = {}) => {
+    const q = new URLSearchParams();
+    Object.entries(params).forEach(([k, v]) => { if (v !== undefined) q.append(k, String(v)); });
+    return apiRequest(`/lab-tests/admin/bookings?${q.toString()}`);
+  },
+  updateBookingStatus: async (bookingId: string, bookingStatus: string) =>
+    apiRequest(`/lab-tests/admin/bookings/${bookingId}/status`, { method: 'PATCH', body: JSON.stringify({ bookingStatus }) }),
+  seedTests: async () => apiRequest('/lab-tests/admin/seed', { method: 'POST' }),
+};
+
 // Chatbot API
 export const chatbotAPI = {
   // Create a new chat session

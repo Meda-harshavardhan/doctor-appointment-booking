@@ -102,6 +102,8 @@ app.use('/api/users', require('./routes/users'));
 app.use('/api/doctors', require('./routes/doctors'));
 app.use('/api/appointments', require('./routes/appointments'));
 app.use('/api/payments', require('./routes/payments'));
+app.use('/api/lab-tests', require('./routes/labTests'));
+app.use('/api/medicines', require('./routes/medicines'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/chatbot', require('./routes/chatbot'));
 
